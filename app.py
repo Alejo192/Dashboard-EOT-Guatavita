@@ -29,7 +29,6 @@ load_css()
 
 
 @st.cache_data
-
 def load_data():
     actors = pd.read_csv(DATA_DIR / "actores_aprestamiento.csv")
     strategies = pd.read_csv(DATA_DIR / "estrategias_aprestamiento.csv")
@@ -89,9 +88,10 @@ def actor_card(row):
 st.sidebar.markdown("# 🗺️ EOT Guatavita")
 st.sidebar.caption("Dashboard interactivo · Fase de Aprestamiento")
 
+# Se eliminó "Integraciones" de la lista de navegación
 page = st.sidebar.radio(
     "Navegación",
-    ["Inicio", "Actores de Aprestamiento", "Presupuesto", "Estrategias", "Integraciones", "Asistente IA"],
+    ["Inicio", "Actores de Aprestamiento", "Presupuesto", "Estrategias", "Asistente IA"],
 )
 
 st.sidebar.markdown("---")
@@ -335,48 +335,7 @@ elif page == "Estrategias":
         """, unsafe_allow_html=True)
 
 # -----------------------------
-# INTEGRATIONS
-# -----------------------------
-elif page == "Integraciones":
-    st.title("🔗 Integraciones externas")
-    st.write("La arquitectura recomendada es que Streamlit sea la capa de navegación y presentación, mientras cada herramienta conserva su función especializada.")
-
-    tab1, tab2, tab3, tab4 = st.tabs(["ArcGIS", "Power BI", "R / Shiny", "Google / otros"])
-    with tab1:
-        st.markdown("### 🗺️ ArcGIS")
-        item_id = st.text_input("ArcGIS WebMap Item ID", placeholder="Pega aquí el Item ID de tu WebMap público")
-        if item_id:
-            html = f"""
-            <script type=\"module\" src=\"https://js.arcgis.com/5.1/embeddable-components/\"></script>
-            <arcgis-embedded-map item-id=\"{item_id}\" heading-enabled legend-enabled information-enabled style=\"height:650px;width:100%;display:block;\"></arcgis-embedded-map>
-            """
-            components.html(html, height=680, scrolling=False)
-        else:
-            st.info("Desde ArcGIS Pro publica el mapa/capas en ArcGIS Online o ArcGIS Enterprise; luego usa aquí el Item ID del WebMap. ArcGIS Pro de escritorio no se incrusta directamente en el navegador.")
-
-    with tab2:
-        st.markdown("### 📊 Power BI")
-        pbi_url = st.text_input("URL de embebido seguro de Power BI", placeholder="https://app.powerbi.com/reportEmbed?...", key="pbi")
-        if pbi_url:
-            st.warning("Para datos protegidos usa el embed seguro y autenticado de Power BI. No uses una URL pública para información sensible.")
-            components.iframe(pbi_url, height=760, scrolling=True)
-        else:
-            st.info("Copia la URL de Embed report → Website or portal desde Power BI Service y pégala aquí.")
-
-    with tab3:
-        st.markdown("### 📈 R / Shiny")
-        shiny_url = st.text_input("URL de tu aplicación Shiny", placeholder="https://tu-app.shinyapps.io/...", key="shiny")
-        if shiny_url:
-            components.iframe(shiny_url, height=800, scrolling=True)
-        else:
-            st.info("No se incrusta RStudio como tal. Lo correcto es desplegar una app Shiny o publicar el resultado analítico como servicio/web y enlazarlo aquí.")
-
-    with tab4:
-        st.markdown("### ☁️ Google / archivos vivos")
-        st.info("Para actualización frecuente, una siguiente iteración puede sustituir los CSV estáticos por Google Sheets. Para la primera versión recomiendo mantener los CSV generados desde Excel y actualizar con el script del repositorio, para que el dashboard sea reproducible.")
-
-# -----------------------------
-# AI
+# AI ASSISTANT
 # -----------------------------
 elif page == "Asistente IA":
     st.title("🤖 Asistente IA para Aprestamiento")
@@ -393,9 +352,16 @@ elif page == "Asistente IA":
     except Exception:
         key = os.getenv("GEMINI_API_KEY")
 
-    selected_actor_name = st.selectbox("Actor para contextualizar", actors_filtered["Actor"].tolist() if len(actors_filtered) else actors["Actor"].tolist())
+    selected_actor_name = st.selectbox(
+        "Actor para contextualizar",
+        actors_filtered["Actor"].tolist() if len(actors_filtered) else actors["Actor"].tolist(),
+        key="ai_actor_selectbox"
+    )
     actor = actors[actors["Actor"] == selected_actor_name].iloc[0]
-    prompt = st.text_area("Solicitud", value="Genera una ficha ejecutiva del actor, indicando su posición en la matriz, rol en Aprestamiento y estrategia de involucramiento. No inventes información.")
+    prompt = st.text_area(
+        "Solicitud",
+        value="Genera una ficha ejecutiva del actor, indicando su posición en la matriz, rol en Aprestamiento y estrategia de involucramiento. No inventes información."
+    )
 
     if st.button("Generar", type="primary"):
         context = actor.to_dict()
@@ -406,65 +372,13 @@ elif page == "Asistente IA":
         else:
             client = genai.Client(api_key=key)
             full = f"Usa exclusivamente estos datos JSON del actor: {context}. Solicitud: {prompt}. Responde en español, de forma clara, sin inventar competencias, fechas, cifras o relaciones no presentes en los datos."
-            response = client.models.generate_content(model="gemini-2.5-flash-lite", contents=full)
+            
+            # Se especifica el modelo oficial "gemini-2.5-flash"
+            response = client.models.generate_content(
+                model="gemini-2.5-flash", 
+                contents=full
+            )
             st.markdown(response.text)
 
     with st.expander("¿Para qué usaría la IA aquí?"):
         st.write("Preparar fichas de reunión, resúmenes de actores, borradores de agenda, síntesis de estrategias y preguntas para mesas de participación. La IA debe transformar el contenido existente, no decidir por sí sola la matriz de actores ni inventar datos.")
-import streamlit as st
-from google import genai
-
-selected_actor_name = st.selectbox(
-    "Actor para contextualizar",
-    actors_filtered["Actor"].tolist() if len(actors_filtered) else actors["Actor"].tolist(),
-    key="selectbox_actor_fichas"  # <--- Agrega una clave única aquí
-)
-selected_actor_name = st.selectbox(
-    "Actor para contextualizar",
-    (
-        actors_filtered["Actor"].tolist()
-        if len(actors_filtered)
-        else actors["Actor"].tolist()
-    ),
-)
-actor = actors[actors["Actor"] == selected_actor_name].iloc[0]
-prompt = st.text_area(
-    "Solicitud",
-    value=(
-        "Genera una ficha ejecutiva del actor, indicando su posición en la"
-        " matriz, rol en Aprestamiento y estrategia de involucramiento. No"
-        " inventes información."
-    ),
-)
-
-if st.button("Generar", type="primary"):
-    context = actor.to_dict()
-    if genai is None:
-        st.error("Instala google-genai para activar el asistente.")
-    elif not key:
-        st.warning(
-            "Configura GEMINI_API_KEY en Streamlit Secrets para activar la"
-            " IA."
-        )
-    else:
-        client = genai.Client(api_key=key)
-        full = (
-            f"Usa exclusivamente estos datos JSON del actor: {context}."
-            f" Solicitud: {prompt}. Responde en español, de forma clara, sin"
-            " inventar competencias, fechas, cifras o relaciones no presentes en"
-            " los datos."
-        )
-
-        # CAMBIO AQUÍ: Se usó el nombre de modelo oficial "gemini-2.5-flash"
-        response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=full
-        )
-        st.markdown(response.text)
-
-with st.expander("¿Para qué usaría la IA aquí?"):
-    st.write(
-        "Preparar fichas de reunión, resúmenes de actores, borradores de"
-        " agenda, síntesis de estrategias y preguntas para mesas de"
-        " participación. La IA debe transformar el contenido existente, no"
-        " decidir por sí sola la matriz de actores ni inventar datos."
-    )
