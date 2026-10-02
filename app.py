@@ -416,6 +416,11 @@ from google import genai
 
 selected_actor_name = st.selectbox(
     "Actor para contextualizar",
+    actors_filtered["Actor"].tolist() if len(actors_filtered) else actors["Actor"].tolist(),
+    key="selectbox_actor_fichas"  # <--- Agrega una clave única aquí
+)
+selected_actor_name = st.selectbox(
+    "Actor para contextualizar",
     (
         actors_filtered["Actor"].tolist()
         if len(actors_filtered)
