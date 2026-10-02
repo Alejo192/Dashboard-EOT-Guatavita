@@ -337,6 +337,9 @@ elif page == "Estrategias":
 # -----------------------------
 # AI ASSISTANT
 # -----------------------------
+# -----------------------------
+# AI ASSISTANT
+# -----------------------------
 elif page == "Asistente IA":
     st.title("🤖 Asistente IA para Aprestamiento")
     st.caption("Diseñado para redactar fichas o resúmenes usando exclusivamente la información disponible en el dashboard.")
@@ -363,7 +366,7 @@ elif page == "Asistente IA":
         value="Genera una ficha ejecutiva del actor, indicando su posición en la matriz, rol en Aprestamiento y estrategia de involucramiento. No inventes información."
     )
 
-   if st.button("Generar", type="primary"):
+    if st.button("Generar", type="primary"):
         context = actor.to_dict()
         if genai is None:
             st.error("Instala google-genai para activar el asistente.")
@@ -374,7 +377,6 @@ elif page == "Asistente IA":
                 client = genai.Client(api_key=key)
                 full = f"Usa exclusivamente estos datos JSON del actor: {context}. Solicitud: {prompt}. Responde en español, de forma clara, sin inventar competencias, fechas, cifras o relaciones no presentes en los datos."
                 
-                # Se actualiza al modelo activo requerido por la API
                 response = client.models.generate_content(
                     model="gemini-3.8-flash", 
                     contents=full
