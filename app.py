@@ -88,7 +88,6 @@ def actor_card(row):
 st.sidebar.markdown("# 🗺️ EOT Guatavita")
 st.sidebar.caption("Dashboard interactivo · Fase de Aprestamiento")
 
-# Se eliminó "Integraciones" de la lista de navegación
 page = st.sidebar.radio(
     "Navegación",
     ["Inicio", "Actores de Aprestamiento", "Presupuesto", "Estrategias", "Asistente IA"],
@@ -178,15 +177,15 @@ if page == "Inicio":
         fig_b.update_layout(height=340, margin=dict(l=10, r=10, t=50, b=10))
         st.plotly_chart(fig_b, use_container_width=True)
     with b2:
-        st.markdown("<div class='info-card'><b>Aprestamiento</b><br><span class='big-money'>" + money(ap_budget) + "</span><br><small>Suma de las 10 sesiones de la hoja APRESTAMIENTO de ESTRATEGIAS.xlsx.</small></div>", unsafe_allow_html=True)
-        st.markdown("<div class='info-card'><b>Fuente</b><br>PRIORIZACION.xlsx + ESTRATEGIAS.xlsx<br><small>Se conservan las etiquetas y textos originales de las hojas suministradas.</small></div>", unsafe_allow_html=True)
+        st.markdown("<div class='info-card'><b>Aprestamiento</b><br><span class='big-money'>" + money(ap_budget) + "</span><br><small>Suma de las 10 sesiones de la sección APRESTAMIENTO de ESTRATEGIAS.</small></div>", unsafe_allow_html=True)
+        st.markdown("<div class='info-card'><b>Fuente</b><br>PRIORIZACION + ESTRATEGIAS<br><small>Se conservan las etiquetas y textos originales de la información suministrada.</small></div>", unsafe_allow_html=True)
 
 # -----------------------------
 # ACTORS
 # -----------------------------
 elif page == "Actores de Aprestamiento":
     st.title("👥 Actores de Aprestamiento")
-    st.caption("La información se toma exclusivamente de la hoja APRESTAMIENTO de PRIORIZACION.xlsx.")
+    st.caption("La información se toma exclusivamente de la sección APRESTAMIENTO de PRIORIZACION.")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Actores visibles", len(actors_filtered))
@@ -259,7 +258,7 @@ elif page == "Actores de Aprestamiento":
 # -----------------------------
 elif page == "Presupuesto":
     st.title("💰 Presupuesto")
-    st.caption("Valores tomados de ESTRATEGIAS.xlsx; se muestran el plan anual y el detalle del Aprestamiento.")
+    st.caption("Valores tomados de ESTRATEGIAS; se muestran el plan anual y el detalle del Aprestamiento.")
 
     total_row = annual[annual["FASE"].str.contains("TOTAL", na=False)]
     total_year = total_row.iloc[0]["Presupuesto_Num"] if not total_row.empty else annual["Presupuesto_Num"].sum()
@@ -334,9 +333,6 @@ elif page == "Estrategias":
         </div>
         """, unsafe_allow_html=True)
 
-# -----------------------------
-# AI ASSISTANT
-# -----------------------------
 # -----------------------------
 # AI ASSISTANT
 # -----------------------------
