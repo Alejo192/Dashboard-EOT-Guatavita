@@ -411,3 +411,55 @@ elif page == "Asistente IA":
 
     with st.expander("¿Para qué usaría la IA aquí?"):
         st.write("Preparar fichas de reunión, resúmenes de actores, borradores de agenda, síntesis de estrategias y preguntas para mesas de participación. La IA debe transformar el contenido existente, no decidir por sí sola la matriz de actores ni inventar datos.")
+import streamlit as st
+from google import genai
+
+selected_actor_name = st.selectbox(
+    "Actor para contextualizar",
+    (
+        actors_filtered["Actor"].tolist()
+        if len(actors_filtered)
+        else actors["Actor"].tolist()
+    ),
+)
+actor = actors[actors["Actor"] == selected_actor_name].iloc[0]
+prompt = st.text_area(
+    "Solicitud",
+    value=(
+        "Genera una ficha ejecutiva del actor, indicando su posición en la"
+        " matriz, rol en Aprestamiento y estrategia de involucramiento. No"
+        " inventes información."
+    ),
+)
+
+if st.button("Generar", type="primary"):
+    context = actor.to_dict()
+    if genai is None:
+        st.error("Instala google-genai para activar el asistente.")
+    elif not key:
+        st.warning(
+            "Configura GEMINI_API_KEY en Streamlit Secrets para activar la"
+            " IA."
+        )
+    else:
+        client = genai.Client(api_key=key)
+        full = (
+            f"Usa exclusivamente estos datos JSON del actor: {context}."
+            f" Solicitud: {prompt}. Responde en español, de forma clara, sin"
+            " inventar competencias, fechas, cifras o relaciones no presentes en"
+            " los datos."
+        )
+
+        # CAMBIO AQUÍ: Se usó el nombre de modelo oficial "gemini-2.5-flash"
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=full
+        )
+        st.markdown(response.text)
+
+with st.expander("¿Para qué usaría la IA aquí?"):
+    st.write(
+        "Preparar fichas de reunión, resúmenes de actores, borradores de"
+        " agenda, síntesis de estrategias y preguntas para mesas de"
+        " participación. La IA debe transformar el contenido existente, no"
+        " decidir por sí sola la matriz de actores ni inventar datos."
+    )
